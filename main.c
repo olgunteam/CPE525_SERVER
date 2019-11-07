@@ -11,6 +11,14 @@
 #define SA struct sockaddr
 
 
+void showOptions(int sockfd) {
+
+    char buff[MAX];
+    bzero(buff, MAX);
+    sprintf(buff, "1-English\n2-Turkish\n3-French\n4-Spanish\nPlease Select a Language:");
+    write(sockfd, buff, sizeof(buff));
+}
+
 void func(int sockfd) {
     char buff[MAX];
     int n;
@@ -61,6 +69,9 @@ int main() {
     len = sizeof(cli);
     //accept connection
     connfd = accept(sockfd, (SA *) &cli, &len);
+
+    showOptions(connfd);
+
     //run command
     func(connfd);
 
