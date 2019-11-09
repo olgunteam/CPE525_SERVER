@@ -5,19 +5,43 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <stdarg.h>
 
 #define MAX 255
 #define PORT 8080
 #define SA struct sockaddr
 
 
-void showOptions(int sockfd) {
-
+int printToClient(int sockfd, const char *format, ...) {
     char buff[MAX];
+    int result = 0;
     bzero(buff, MAX);
-    sprintf(buff, "1-English\n2-Turkish\n3-French\n4-Spanish\nPlease Select a Language:");
+    va_list args;
+    va_start(args, format);
+    result = vsprintf(buff, format, args);
     write(sockfd, buff, sizeof(buff));
+    va_end(args);
+
+    return result;
 }
+
+int selectLanguage(int sockfd) {
+
+    int language = 0;
+    char buff[MAX];
+    while (language == 0) {
+        bzero(buff, MAX);
+        printToClient(sockfd, "1-English\n2-Turkish\n3-French\n4-Spanish\nPlease Select a Language:");
+        read(sockfd, buff, sizeof(buff));
+        language = atoi(buff);
+        if (language < 0 || language > 4) {
+            language = 0;
+        }
+    }
+    printToClient(sockfd, "Selected Language is : %d", language);
+    return language;
+}
+
 
 void func(int sockfd) {
     char buff[MAX];
@@ -46,35 +70,73 @@ void func(int sockfd) {
     }
 }
 
+int createSocket(void) {
+
+    int socketi;
+    //create socket
+    socketi = socket(AF_INET, SOCK_STREAM, 0);
+    if (socketi == -1) {
+        printf("socket creation failed...\n");
+        exit(0);
+    } else {
+        printf("Socket successfully created..\n");
+    }
+    return socketi;
+}
+
+int createConnection(int socketi) {
+
+    int connection, len, language;
+
+    struct sockaddr_in serverAddress, clientAddress;
+
+
+    //clear
+    bzero(&serverAddress, sizeof(serverAddress));
+
+    //assign address
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+    serverAddress.sin_port = htons(PORT);
+    //bind socket
+    if ((bind(socketi, (SA *) &serverAddress, sizeof(serverAddress))) != 0) {
+        printf("socket bind failed...\n");
+        exit(0);
+    } else {
+        printf("Socket successfully binded..\n");
+    }
+
+    //listen port
+    if ((listen(socketi, 5)) != 0) {
+        printf("Listen failed...\n");
+        exit(0);
+    } else {
+        printf("Server listening..\n");
+    }
+
+    len = sizeof(clientAddress);
+    //accept connection
+    connection = accept(socketi, (SA *) &clientAddress, &len);
+    if (connection < 0) {
+        printf("server acccept failed...\n");
+        exit(0);
+    } else {
+        printf("server acccept the client...\n");
+    }
+    return connection;
+}
 
 // Driver function
 int main() {
-    int sockfd, connfd, len;
-    struct sockaddr_in servaddr, cli;
+    int connection, language, socketi;
 
-    //create socket
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    //clear
-    bzero(&servaddr, sizeof(servaddr));
-
-    //assign address
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servaddr.sin_port = htons(PORT);
-    //bind socket
-    bind(sockfd, (SA *) &servaddr, sizeof(servaddr));
-
-    //listen port
-    listen(sockfd, 5);
-    len = sizeof(cli);
-    //accept connection
-    connfd = accept(sockfd, (SA *) &cli, &len);
-
-    showOptions(connfd);
+    socketi = createSocket();
+    connection = createConnection(socketi);
+    language = selectLanguage(connection);
 
     //run command
-    func(connfd);
 
-    //clone socket
-    close(sockfd);
+
+    //close socket
+    close(socketi);
 }
