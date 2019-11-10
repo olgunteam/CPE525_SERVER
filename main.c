@@ -89,17 +89,17 @@ int createSocket(void) {
 void translateFromDigit(int digit, int language, int connection) {
 
     const char *translation[4][10] = {
-            {"SIFIR", "BİR", "İKİ", "ÜÇ",    "DÖRT", "BEŞ",  "ALTI", "YEDİ",  "SEKİZ", "DOKUZ"},
-            {"ZERO",  "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX",  "SEVEN", "EIGHT", "NINE"},
-            {"ZERO",  "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX",  "SEVEN", "EIGHT", "NINE"},
-            {"ZERO",  "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX",  "SEVEN", "EIGHT", "NINE"},
+            {"ZERO",  "ONE", "TWO",  "THREE", "FOUR",   "FIVE",  "SIX",  "SEVEN", "EIGHT", "NINE"},
+            {"SIFIR", "BİR", "İKİ",  "ÜÇ",    "DÖRT",   "BEŞ",   "ALTI", "YEDİ",  "SEKİZ", "DOKUZ"},
+            {"ZÉRO",  "UN",  "DEUX", "TROIS", "QUATRE", "CINQ",  "SIX",  "SEPT",  "HUIT",  "NEUF"},
+            {"CERO",  "UNO", "DOS",  "TRES",  "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO",  "NUEVE"},
     };
     printToClient(connection, "Translation is:%s\n", translation[language - 1][digit]);
 }
 
 int createConnection(int socketi) {
 
-    int connection, len, language;
+    int connection, len;
 
     struct sockaddr_in serverAddress, clientAddress;
 
@@ -147,7 +147,7 @@ int main() {
 
     socketi = createSocket();
     connection = createConnection(socketi);
-    while(1) {
+    while (1) {
         language = selectLanguage(connection);
 
 
