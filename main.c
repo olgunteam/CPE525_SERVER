@@ -6,6 +6,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <ctype.h>
+
 
 #define MAX 255
 #define PORT 8080
@@ -38,7 +40,7 @@ int selectLanguage(int sockfd) {
             language = 0;
         }
     }
-    printToClient(sockfd, "Selected Language is : %d", language);
+    printToClient(sockfd, "Selected Language is : %d\n", language);
     return language;
 }
 
@@ -82,6 +84,17 @@ int createSocket(void) {
         printf("Socket successfully created..\n");
     }
     return socketi;
+}
+
+void translateFromDigit(int digit, int language, int connection) {
+
+    const char *translation[4][10] = {
+            {"SIFIR", "BİR", "İKİ", "ÜÇ",    "DÖRT", "BEŞ",  "ALTI", "YEDİ",  "SEKİZ", "DOKUZ"},
+            {"ZERO",  "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX",  "SEVEN", "EIGHT", "NINE"},
+            {"ZERO",  "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX",  "SEVEN", "EIGHT", "NINE"},
+            {"ZERO",  "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX",  "SEVEN", "EIGHT", "NINE"},
+    };
+    printToClient(connection, "Translation is:%s\n", translation[language - 1][digit]);
 }
 
 int createConnection(int socketi) {
@@ -129,14 +142,30 @@ int createConnection(int socketi) {
 // Driver function
 int main() {
     int connection, language, socketi;
+    char buff[MAX];
+
 
     socketi = createSocket();
     connection = createConnection(socketi);
-    language = selectLanguage(connection);
+    while(1) {
+        language = selectLanguage(connection);
 
-    //run command
+
+        printToClient(connection, "Please enter some input:");
+        bzero(buff, MAX);
+        read(connection, buff, sizeof(buff));
+
+        if (isdigit(buff[0])) {
+            printf("%d\n", atoi(buff));
+            translateFromDigit(atoi(buff), language, connection);
+        } else {
+
+        }
+    }
+
 
 
     //close socket
     close(socketi);
+
 }
