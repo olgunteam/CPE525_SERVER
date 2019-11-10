@@ -154,6 +154,10 @@ int main() {
         printToClient(connection, "Please enter some input:");
         bzero(buff, MAX);
         read(connection, buff, sizeof(buff));
+        if (strncmp("exit", buff, 4) == 0) {
+            printf("Server Exit...\n");
+            break;
+        }
 
         if (isdigit(buff[0])) {
             printf("%d\n", atoi(buff));
@@ -162,8 +166,6 @@ int main() {
 
         }
     }
-
-
 
     //close socket
     close(socketi);
