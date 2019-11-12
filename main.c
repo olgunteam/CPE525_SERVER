@@ -21,104 +21,18 @@ const char *translation[4][10] = {
         {"sıfır", "bir", "iki",  "üç",    "dört",   "beş",   "altı", "yedi",  "sekiz", "dokuz"}
 };
 
+
 void translateFromWord(char buff[255], int language, int connection);
 
+int printToClient(int sockfd, const char *format, ...);
 
-int printToClient(int sockfd, const char *format, ...) {
-    char buff[MAX];
-    int result = 0;
-    bzero(buff, MAX);
-    va_list args;
-    va_start(args, format);
-    result = vsprintf(buff, format, args);
-    write(sockfd, buff, sizeof(buff));
-    va_end(args);
+int selectLanguage(int connection);
 
-    return result;
-}
+int createSocket(void);
 
-int selectLanguage(int sockfd) {
+void translateFromDigit(int digit, int language, int connection);
 
-
-    int language = -1;
-    char buff[MAX];
-    while (language == -1) {
-        bzero(buff, MAX);
-        printToClient(sockfd, "English(0), French(1), Spanish(2), Turkish(3)");
-        read(sockfd, buff, sizeof(buff));
-        language = atoi(buff);
-        if (language < 0 || language > 4) {
-            language = -1;
-        }
-    }
-    printf("Client set language as %s \n", languages[language]);
-    printToClient(sockfd, "Client set language as %s \n", languages[language]);
-
-
-    return language;
-}
-
-int createSocket(void) {
-
-    int socketi;
-    //create socket
-    socketi = socket(AF_INET, SOCK_STREAM, 0);
-    if (socketi == -1) {
-        printf("socket creation failed...\n");
-        exit(0);
-    } else {
-        printf("Socket successfully created..\n");
-    }
-    return socketi;
-}
-
-void translateFromDigit(int digit, int language, int connection) {
-
-    printf("This is positive integer so process and return “%s”\n", translation[language][digit]);
-    printToClient(connection, "%s\n", translation[language][digit]);
-}
-
-int createConnection(int socketi) {
-
-    int connection, len;
-
-    struct sockaddr_in serverAddress, clientAddress;
-
-
-    //clear
-    bzero(&serverAddress, sizeof(serverAddress));
-
-    //assign address
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
-    serverAddress.sin_port = htons(PORT);
-    //bind socket
-    if ((bind(socketi, (SA *) &serverAddress, sizeof(serverAddress))) != 0) {
-        printf("socket bind failed...\n");
-        exit(0);
-    } else {
-        printf("Socket successfully binded..\n");
-    }
-
-    //listen port
-    if ((listen(socketi, 5)) != 0) {
-        printf("Listen failed...\n");
-        exit(0);
-    } else {
-        printf("Server listening..\n");
-    }
-
-    len = sizeof(clientAddress);
-    //accept connection
-    connection = accept(socketi, (SA *) &clientAddress, &len);
-    if (connection < 0) {
-        printf("server acccept failed...\n");
-        exit(0);
-    } else {
-        printf("server acccept the client...\n");
-    }
-    return connection;
-}
+int createConnection(int socketi);
 
 // Driver function
 int main() {
@@ -180,5 +94,101 @@ void translateFromWord(char buff[255], int language, int connection) {
     printf("Process word but this is not dictionary word so response as same \"%s\" \n", buff);
     printToClient(connection, "%s\n", buff);
 
+}
+
+int createConnection(int socketi) {
+
+    int connection, len;
+
+    struct sockaddr_in serverAddress, clientAddress;
+
+
+    //clear
+    bzero(&serverAddress, sizeof(serverAddress));
+
+    //assign address
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+    serverAddress.sin_port = htons(PORT);
+    //bind socket
+    if ((bind(socketi, (SA *) &serverAddress, sizeof(serverAddress))) != 0) {
+        printf("socket bind failed...\n");
+        exit(0);
+    } else {
+        printf("Socket successfully binded..\n");
+    }
+
+    //listen port
+    if ((listen(socketi, 5)) != 0) {
+        printf("Listen failed...\n");
+        exit(0);
+    } else {
+        printf("Server listening..\n");
+    }
+
+    len = sizeof(clientAddress);
+    //accept connection
+    connection = accept(socketi, (SA *) &clientAddress, &len);
+    if (connection < 0) {
+        printf("server acccept failed...\n");
+        exit(0);
+    } else {
+        printf("server acccept the client...\n");
+    }
+    return connection;
+}
+
+void translateFromDigit(int digit, int language, int connection) {
+
+    printf("This is positive integer so process and return “%s”\n", translation[language][digit]);
+    printToClient(connection, "%s\n", translation[language][digit]);
+}
+
+int printToClient(int sockfd, const char *format, ...) {
+    char buff[MAX];
+    int result = 0;
+    bzero(buff, MAX);
+    va_list args;
+    va_start(args, format);
+    result = vsprintf(buff, format, args);
+    write(sockfd, buff, sizeof(buff));
+    va_end(args);
+
+    return result;
+}
+
+int selectLanguage(int connection) {
+
+
+    int language = -1;
+    char buff[MAX];
+    while (language == -1) {
+        bzero(buff, MAX);
+        printToClient(connection, "English(0), French(1), Spanish(2), Turkish(3)");
+        read(connection, buff, sizeof(buff));
+        language = atoi(buff);
+        if (language < 0 || language > 4) {
+            language = -1;
+        }
+    }
+    printf("Client set language as %s \n", languages[language]);
+    printToClient(connection, "Client set language as %s \n", languages[language]);
+
+
+    return language;
+}
+
+int createSocket(void) {
+
+    int socketi;
+    //create socket
+    socketi = socket(AF_INET, SOCK_STREAM, 0);
+    if (socketi == -1) {
+        printf("socket creation failed...\n");
+        exit(0);
+    } else {
+        printf("Socket successfully created..\n");
+    }
+    return socketi;
 }
 
