@@ -10,9 +10,18 @@
 
 
 #define MAX 255
-#define PORT 8080
+#define PORT 9000
 #define SA struct sockaddr
 
+const char *languages[4] = {"English", "French", "Spanish", "Turkish"};
+const char *translation[4][10] = {
+        {"zero",  "one",  "two",   "three", "four",   "five",  "six",  "seven", "eight",  "nine"},
+        {"zéro",  "un",   "deux",  "trois", "quatre", "cinq",  "six",  "sept",  "huit",   "neuf"},
+        {"cero",  "uno",  "dos",   "tres",  "cuatro", "cinco", "seis", "siete", "ocho",   "nueve"},
+        {"sifir", "bi̇r", "i̇ki̇", "üç",    "dört",   "beş",   "alti", "yedi̇", "seki̇z", "dokuz"}
+};
+
+void translateFromWord(char buff[255], int language, int connection);
 
 int printToClient(int sockfd, const char *format, ...) {
     char buff[MAX];
@@ -29,47 +38,23 @@ int printToClient(int sockfd, const char *format, ...) {
 
 int selectLanguage(int sockfd) {
 
-    int language = 0;
+
+    int language = -1;
     char buff[MAX];
-    while (language == 0) {
+    while (language == -1) {
         bzero(buff, MAX);
-        printToClient(sockfd, "1-English\n2-Turkish\n3-French\n4-Spanish\nPlease Select a Language:");
+        printToClient(sockfd, "English(0), French(1), Spanish(2), Turkish(3)");
         read(sockfd, buff, sizeof(buff));
         language = atoi(buff);
         if (language < 0 || language > 4) {
-            language = 0;
+            language = -1;
         }
     }
-    printToClient(sockfd, "Selected Language is : %d\n", language);
+    printf("Client set language as %s \n", languages[language]);
+    printToClient(sockfd, "Client set language as %s \n", languages[language]);
+
+
     return language;
-}
-
-
-void func(int sockfd) {
-    char buff[MAX];
-    int n;
-    // infinite loop for chat
-    for (;;) {
-
-        bzero(buff, MAX);
-        // read the message from client and copy it in buffer
-        read(sockfd, buff, sizeof(buff));
-        // print buffer which contains the client contents
-        printf("From client: %s\t To client : ", buff);
-        bzero(buff, MAX);
-        n = 0;
-        // copy server message in the buffer
-        while ((buff[n++] = getchar()) != '\n');
-
-        // and send that buffer to client
-        write(sockfd, buff, sizeof(buff));
-
-        // if msg contains "Exit" then server exit and chat ended.
-        if (strncmp("exit", buff, 4) == 0) {
-            printf("Server Exit...\n");
-            break;
-        }
-    }
 }
 
 int createSocket(void) {
@@ -88,13 +73,8 @@ int createSocket(void) {
 
 void translateFromDigit(int digit, int language, int connection) {
 
-    const char *translation[4][10] = {
-            {"ZERO",  "ONE", "TWO",  "THREE", "FOUR",   "FIVE",  "SIX",  "SEVEN", "EIGHT", "NINE"},
-            {"SIFIR", "BİR", "İKİ",  "ÜÇ",    "DÖRT",   "BEŞ",   "ALTI", "YEDİ",  "SEKİZ", "DOKUZ"},
-            {"ZÉRO",  "UN",  "DEUX", "TROIS", "QUATRE", "CINQ",  "SIX",  "SEPT",  "HUIT",  "NEUF"},
-            {"CERO",  "UNO", "DOS",  "TRES",  "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO",  "NUEVE"},
-    };
-    printToClient(connection, "Translation is:%s\n", translation[language - 1][digit]);
+    printf("This is positive integer so process and return “%s”\n", translation[language][digit]);
+    printToClient(connection, "%s\n", translation[language][digit]);
 }
 
 int createConnection(int socketi) {
@@ -147,15 +127,13 @@ int main() {
 
     socketi = createSocket();
     connection = createConnection(socketi);
+    language = selectLanguage(connection);
     while (1) {
-        language = selectLanguage(connection);
-
-
-        printToClient(connection, "Please enter some input:");
         bzero(buff, MAX);
         read(connection, buff, sizeof(buff));
-        if (strncmp("exit", buff, 4) == 0) {
-            printf("Server Exit...\n");
+        if (strncmp("quit", buff, 4) == 0) {
+            printf("Send “Goodbye” and disconnect client from server.\n");
+            printToClient(connection, "Goodbye\n");
             break;
         }
 
@@ -163,11 +141,29 @@ int main() {
             printf("%d\n", atoi(buff));
             translateFromDigit(atoi(buff), language, connection);
         } else {
-
+            translateFromWord(buff, language, connection);
         }
     }
 
     //close socket
     close(socketi);
 
+}
+
+void translateFromWord(char buff[255], int language, int connection) {
+
+
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 10; j++) {
+            if (strcmp(buff, translation[i][j]) != 0) {
+                if (language == i) {
+                    printf("This is dictionary word process and response to client “%d”\n", j);
+                    printToClient(connection, "%d", j);
+                } else {
+                    printf("This is %s dictionary word but we choose %s in beginning so return same “%s”\n",languages[i],languages[language],buff);
+                    printToClient(connection, "%d", j);
+                }
+            }
+        }
+    }
 }
