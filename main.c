@@ -15,13 +15,14 @@
 
 const char *languages[4] = {"English", "French", "Spanish", "Turkish"};
 const char *translation[4][10] = {
-        {"zero",  "one",  "two",   "three", "four",   "five",  "six",  "seven", "eight",  "nine"},
-        {"zéro",  "un",   "deux",  "trois", "quatre", "cinq",  "six",  "sept",  "huit",   "neuf"},
-        {"cero",  "uno",  "dos",   "tres",  "cuatro", "cinco", "seis", "siete", "ocho",   "nueve"},
-        {"sifir", "bi̇r", "i̇ki̇", "üç",    "dört",   "beş",   "alti", "yedi̇", "seki̇z", "dokuz"}
+        {"zero",  "one", "two",  "three", "four",   "five",  "six",  "seven", "eight",  "nine"},
+        {"zéro",  "un",  "deux", "trois", "quatre", "cinq",  "six",  "sept",  "huit",   "neuf"},
+        {"cero",  "uno", "dos",  "tres",  "cuatro", "cinco", "seis", "siete", "ocho",   "nueve"},
+        {"sıfır", "bir", "iki", "üç",    "dört",   "beş",   "altı", "yedi̇", "seki̇z", "dokuz"}
 };
 
 void translateFromWord(char buff[255], int language, int connection);
+
 
 int printToClient(int sockfd, const char *format, ...) {
     char buff[MAX];
@@ -131,14 +132,21 @@ int main() {
     while (1) {
         bzero(buff, MAX);
         read(connection, buff, sizeof(buff));
-        if (strncmp("quit", buff, 4) == 0) {
+        for (int i = 0; i < MAX; i++) {
+            if (buff[i] == '\r') {
+                buff[i] = '\0';
+            }
+            if (buff[i] == '\n') {
+                buff[i] = '\0';
+            }
+        }
+        if (strcmp("quit", buff) == 0) {
             printf("Send “Goodbye” and disconnect client from server.\n");
             printToClient(connection, "Goodbye\n");
             break;
         }
 
         if (isdigit(buff[0])) {
-            printf("%d\n", atoi(buff));
             translateFromDigit(atoi(buff), language, connection);
         } else {
             translateFromWord(buff, language, connection);
@@ -155,15 +163,22 @@ void translateFromWord(char buff[255], int language, int connection) {
 
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 10; j++) {
-            if (strcmp(buff, translation[i][j]) != 0) {
+            if (strcmp(buff, translation[i][j]) == 0) {
                 if (language == i) {
-                    printf("This is dictionary word process and response to client “%d”\n", j);
-                    printToClient(connection, "%d", j);
+                    printf("This is dictionary word process and response to client \"%d\"\n", j);
+                    printToClient(connection, "%d\n", j);
+                    return;
                 } else {
-                    printf("This is %s dictionary word but we choose %s in beginning so return same “%s”\n",languages[i],languages[language],buff);
-                    printToClient(connection, "%d", j);
+                    printf("This is %s dictionary word but we choose %s in beginning so return same \"%s\"\n",
+                           languages[i], languages[language], buff);
+                    printToClient(connection, "%s\n", buff);
+                    return;
                 }
             }
         }
     }
+    printf("Process word but this is not dictionary word so response as same \"%s\" \n", buff);
+    printToClient(connection, "%s\n", buff);
+
 }
+
