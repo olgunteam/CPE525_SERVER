@@ -12,8 +12,9 @@
 #define MAX 255
 #define PORT 9000
 #define SA struct sockaddr
-
+// constant languages
 const char *languages[4] = {"English", "French", "Spanish", "Turkish"};
+// numbers
 const char *translation[4][10] = {
         {"zero",  "one", "two",  "three", "four",   "five",  "six",  "seven", "eight", "nine"},
         {"zéro",  "un",  "deux", "trois", "quatre", "cinq",  "six",  "sept",  "huit",  "neuf"},
