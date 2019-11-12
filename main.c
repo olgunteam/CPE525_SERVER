@@ -15,10 +15,10 @@
 
 const char *languages[4] = {"English", "French", "Spanish", "Turkish"};
 const char *translation[4][10] = {
-        {"zero",  "one", "two",  "three", "four",   "five",  "six",  "seven", "eight",  "nine"},
-        {"zéro",  "un",  "deux", "trois", "quatre", "cinq",  "six",  "sept",  "huit",   "neuf"},
-        {"cero",  "uno", "dos",  "tres",  "cuatro", "cinco", "seis", "siete", "ocho",   "nueve"},
-        {"sıfır", "bir", "iki", "üç",    "dört",   "beş",   "altı", "yedi̇", "seki̇z", "dokuz"}
+        {"zero",  "one", "two",  "three", "four",   "five",  "six",  "seven", "eight", "nine"},
+        {"zéro",  "un",  "deux", "trois", "quatre", "cinq",  "six",  "sept",  "huit",  "neuf"},
+        {"cero",  "uno", "dos",  "tres",  "cuatro", "cinco", "seis", "siete", "ocho",  "nueve"},
+        {"sıfır", "bir", "iki",  "üç",    "dört",   "beş",   "altı", "yedi",  "sekiz", "dokuz"}
 };
 
 void translateFromWord(char buff[255], int language, int connection);
