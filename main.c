@@ -34,17 +34,17 @@ void translateFromDigit(int digit, int language, int connection);
 
 int createConnection(int socketi);
 
-// Driver function
+
 int main() {
     int connection, language, socketi;
     char buff[MAX];
-
 
     socketi = createSocket();
     connection = createConnection(socketi);
     language = selectLanguage(connection);
     while (1) {
         bzero(buff, MAX);
+        //remove trailing newline character
         read(connection, buff, sizeof(buff));
         for (int i = 0; i < MAX; i++) {
             if (buff[i] == '\r') {
@@ -54,12 +54,14 @@ int main() {
                 buff[i] = '\0';
             }
         }
+        //quit if word is quit
         if (strcmp("quit", buff) == 0) {
             printf("Send “Goodbye” and disconnect client from server.\n");
             printToClient(connection, "Goodbye\n");
             break;
         }
 
+        //determine if input is word or digit
         if (isdigit(buff[0])) {
             translateFromDigit(atoi(buff), language, connection);
         } else {
@@ -67,7 +69,7 @@ int main() {
         }
     }
 
-    //close socket
+    //clear connection
     close(socketi);
 
 }
